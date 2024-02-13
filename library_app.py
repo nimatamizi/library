@@ -1,5 +1,4 @@
-
-import database_manager as dm 
+import database_manager as dbm
 
 def display_admin_menu():
     print("""
@@ -22,8 +21,8 @@ def display_user_menu():
 def register_user(conn):
     username = input("Enter new username: ")
     password = input("Enter new password: ")
-
-    dbm.add_user(conn, username, password, role) 
+    role = "user"  
+    dbm.add_user(conn, username, password, role)
 
 def login(conn):
     username = input("Username: ")
@@ -40,23 +39,53 @@ def admin_actions(conn):
           author = input("Enter the author of the book: ")
           isbn = input("Enter the ISBN of the book: ")
           published_date = input("Enter the published date of the book (YYYY-MM-DD): ")
-          book = (title, author, isbn) 
+          book = (title, author, isbn, published_date)
           dbm.add_book(conn, book)
-
-
-
-      elif choice == '5': 
-        break 
-
+      elif choice == '2':
+          book_id = int(input("Enter the ID of the book to update: "))
+          title = input("Enter the new title of the book: ")
+          author = input("Enter the new author of the book: ")
+          isbn = input("Enter the new ISBN of the book: ")
+          published_date = input("Enter the new published date of the book (YYYY-MM-DD): ")
+          book = (title, author, isbn, published_date, book_id)
+          dbm.update_book(conn, book)
+      elif choice == '3':
+          book_id = int(input("Enter the ID of the book to delete: "))
+          dbm.delete_book(conn, book_id)
+      elif choice == '4':
+          dbm.select_all_books(conn)
+      elif choice == '5':
+        title = input("Enter the title of the book to search: ")
+        dbm.search_books_by_title(conn, title)
+      elif choice == '6':
+          break
       else:
           print("Invalid choice. Please try again.")
 
+def user_actions(conn):
+    while True:
+        display_user_menu()
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            dbm.select_all_books(conn)
+        elif choice == '2':
+            book_id = int(input("Enter the ID of the book to search: "))
+            book = dbm.select_book_by_id(conn, book_id)
+            print(book)
+        elif choice == '3':
+            break
+        else:
+            print("Invalid choice. Please try again.")
 
 def main():
     database = "library.db"
     conn = dbm.create_connection(database)
 
     if conn is not None:
+        dbm.create_table(conn)
+        dbm.create_users_table(conn)
+        if not dbm.does_user_exist(conn, "admin"):
+          dbm.add_user(conn, "admin", "admin123", "admin")
         while True:
             print("1. Login\n2. Register\n3. Exit")
             choice = input("Choose an option: ")
@@ -70,14 +99,14 @@ def main():
                 else:
                     print("Invalid login.")
             elif choice == '2':
-                register_user(conn) 
+                register_user(conn)
             elif choice == '3':
                 print("Exiting the system.")
                 break
 
         conn.close()
     else:
-        print("Error! Cannot create the database connection.") # Bug: No retry mechanism on failure to connect
+        print("Error! Cannot create the database connection.")
 
 if __name__ == '__main__':
     main()
