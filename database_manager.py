@@ -1,107 +1,142 @@
-import database_manager as dbm
+import sqlite3
+import hashlib
 
-def display_admin_menu():
-    print("""
-          Welcome to the admin menu
-          1 - Add new book
-          2 - Update book Information
-          3 - Delete book
-          4 - View all books
-          5 - Exit
-    """)
+def create_connection(db_file):
+    """ creating connection to the SQLITE """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        print("SQLite connection is established.")
+    except sqlite3.Error as e:
+        print(e)
+    return conn
 
-def display_user_menu():
-    print("""
-          Welcome to the library
-          1 - View all books
-          2 - Search for a book
-          3 - Exit
-    """)
+def create_table(conn):
+    """ creating the books table in the database """
+    try:
+        cursor = conn.cursor()
+        cursor.execute(""" CREATE TABLE IF NOT EXISTS books (
+                            id INTEGER PRIMARY KEY,
+                            title TEXT NOT NULL,
+                            author TEXT NOT NULL,
+                            isbn TEXT NOT NULL,
+                            published_date TEXT
+                          ); """)
+        print("Table created successfully.")
+    except sqlite3.Error as e:
+        print(e)
 
-def register_user(conn):
-    username = input("Enter new username: ")
-    password = input("Enter new password: ")
-    role = "user"  
-    dbm.add_user(conn, username, password, role)
+def add_book(conn, book):
+    """ Adding a new book to the books table """
+    sql = ''' INSERT INTO books(title, author, isbn, published_date)
+              VALUES(?,?,?,?) '''
+    cur = conn.cursor()
+    cur.execute(sql, book)
+    conn.commit()
+    return cur.lastrowid
 
-def login(conn):
-    username = input("Username: ")
-    password = input("Password: ")
-    user = dbm.login_user(conn, username, password)
-    return user
+def update_book(conn, book):
+    """ Updating a book using the ID in books table. """
+    sql = ''' UPDATE books
+              SET title = ? ,
+                  author = ? ,
+                  isbn = ? ,
+                  published_date = ?
+              WHERE id = ?'''
+    cur = conn.cursor()
+    cur.execute(sql, book)
+    conn.commit()
 
-def admin_actions(conn):
-  while True:
-      display_admin_menu()
-      choice = input("Enter your choice: ")
-      if choice == '1':
-          title = input("Enter the title of the book: ")
-          author = input("Enter the author of the book: ")
-          isbn = input("Enter the ISBN of the book: ")
-          published_date = input("Enter the published date of the book (YYYY-MM-DD): ")
-          book = (title, author, isbn, published_date)
-          dbm.add_book(conn, book)
-      elif choice == '2':
-          book_id = int(input("Enter the ID of the book to update: "))
-          title = input("Enter the new title of the book: ")
-          author = input("Enter the new author of the book: ")
-          isbn = input("Enter the new ISBN of the book: ")
-          published_date = input("Enter the new published date of the book (YYYY-MM-DD): ")
-          book = (title, author, isbn, published_date, book_id)
-          dbm.update_book(conn, book)
-      elif choice == '3':
-          book_id = int(input("Enter the ID of the book to delete: "))
-          dbm.delete_book(conn, book_id)
-      elif choice == '4':
-          dbm.select_all_books(conn)
+
+def search_books_by_title(conn, title):
+  """ Search for books by title. """
+  cur = conn.cursor()
+  cur.execute("SELECT * FROM books WHERE title LIKE ?", ('%' + title + '%',))
+
+  rows = cur.fetchall()
+  for row in rows:
+      print(row)
+
+def delete_book(conn, id):
+    """ delete a book from the books table by book id. """
+    sql = 'DELETE FROM books WHERE id=?'
+    cur = conn.cursor()
+    cur.execute(sql, (id,))
+    conn.commit()
+
+def select_all_books(conn):
+    """ querying all rows in the books table. """
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM books")
+
+    rows = cur.fetchall()
+
+    for row in rows:
+        print(row)
+
+def select_book_by_id(conn, id):
+    """ getting a book by its ID . """
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM books WHERE id=?", (id,))
+
+    row = cur.fetchone()
+    return row
+
+def create_users_table(conn):
+  """ Creating user table in the database. """
+  try:
+      cursor = conn.cursor()
+      cursor.execute(""" CREATE TABLE IF NOT EXISTS users (
+                          id INTEGER PRIMARY KEY,
+                          username TEXT UNIQUE NOT NULL,
+                          password TEXT NOT NULL,
+                          role TEXT NOT NULL
+                        ); """)
+      print("Users table created successfully.")
+  except sqlite3.Error as e:
+      print(e)
+
+def add_user(conn, username, password, role):
+  """ Add a new user into the users table. (default role will be user) """
+  hashed_password = hashlib.sha256(password.encode()).hexdigest()
+  sql = ''' INSERT INTO users(username, password, role)
+            VALUES(?,?,?) '''
+  cur = conn.cursor()
+  cur.execute(sql, (username, hashed_password, role))
+  conn.commit()
+  return cur.lastrowid
+
+def login_user(conn, username, password):
+  """ Validating user logins. """
+  hashed_password = hashlib.sha256(password.encode()).hexdigest()
+  sql = 'SELECT * FROM users WHERE username=? AND password=?'
+  cur = conn.cursor()
+  cur.execute(sql, (username, hashed_password))
+  user = cur.fetchone()
+  return user
   
-      elif choice == '5': 
-          break
-      else:
-          print("Invalid choice. Please try again.")
-
-def user_actions(conn):
-    while True:
-        display_user_menu()
-        choice = input("Enter your choice: ")
-        if choice == '1':
-            dbm.select_all_books(conn)
-        elif choice == '2':
-            book_id = int(input("Enter the ID of the book to search: "))
-            book = dbm.select_book_by_id(conn, book_id)
-            print(book)
-        elif choice == '3':
-            break
-        else:
-            print("Invalid choice. Please try again.")
+def does_user_exist(conn, username):
+  """ Check if a user already exists in the database. """
+  cur = conn.cursor()
+  cur.execute("SELECT * FROM users WHERE username=?", (username,))
+  return cur.fetchone() is not None
 
 def main():
     database = "library.db"
-    conn = dbm.create_connection(database)
+
+   
+    conn = create_connection(database)
 
     if conn is not None:
-        dbm.create_table(conn) 
-        dbm.create_users_table(conn) 
-        if not dbm.does_user_exist(conn, "admin"):
-          dbm.add_user(conn, "admin", "admin123", "admin")
-        while True:
-            print("1. Login\n2. Register\n3. Exit")
-            choice = input("Choose an option: ")
-            if choice == '1':
-                user = login(conn)
-                if user:
-                    if user[3] == "admin": 
-                        admin_actions(conn)
-                    else:
-                        user_actions(conn)
-                else:
-                    print("Invalid login.")
-            elif choice == '2':
-                register_user(conn)
-            elif choice == '3':
-                print("Exiting the system.")
-                break
 
+        create_table(conn)
+
+
+        book = ('Sample Book', 'Author Name', '1234567890', '01-01-2020')
+        add_book(conn, book)
+        select_all_books(conn)
+
+     
         conn.close()
     else:
         print("Error! Cannot create the database connection.")

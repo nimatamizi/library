@@ -1,109 +1,137 @@
 import database_manager as dbm
 
-def display_admin_menu():
-    print("""
-          Welcome to the admin menu
-          1 - Add new book
-          2 - Update book Information
-          3 - Delete book
-          4 - View all books
-          5 - Exit
-    """)
+def display_menu(options): #Displaying the options from the dictionaries
+    print("\n".join([f"{key} - {value['text']}" for key, value in options.items()]))
 
-def display_user_menu():
-    print("""
-          Welcome to the library
-          1 - View all books
-          2 - Search for a book
-          3 - Exit
-    """)
+def get_user_input(prompt, cast_to=str, validation=None): #Getting the user input 
+    while True:
+        user_input = input(prompt)
+        try:
+            value = cast_to(user_input)
+            if validation and not validation(value):
+                raise ValueError
+            return value
+        except ValueError:
+            print("Invalid input, please try again.")
+
+def add_book(conn):
+    book_details = { # Made it more robust by making it dictionary based
+        'title': input("Enter the title of the book: "),
+        'author': input("Enter the author of the book: "),
+        'isbn': input("Enter the ISBN of the book: "),
+        'published_date': input("Enter the published date of the book (YYYY-MM-DD): ")
+    }
+    dbm.add_book(conn, book_details)
+
+def update_book(conn):
+    book_id = get_user_input("Enter the ID of the book to update: ", int)
+    book_details = { # Made it more robust by making it dictionary based
+        'title': input("Enter the new title of the book: "),
+        'author': input("Enter the new author of the book: "),
+        'isbn': input("Enter the new ISBN of the book: "),
+        'published_date': input("Enter the new published date of the book (YYYY-MM-DD): "),
+        'id': book_id
+    }
+    dbm.update_book(conn, book_details)
+
+def delete_book(conn):
+    book_id = get_user_input("Enter the ID of the book to delete: ", int)
+    dbm.delete_book(conn, book_id)
+
+def view_books(conn):
+    dbm.select_all_books(conn)
+
+def search_books(conn):
+    title = input("Enter the title of the book to search: ")
+    dbm.search_books_by_title(conn, title)
+
+def admin_actions(conn): #Admin panel functionalities
+    admin_options = {  # Made it more robust by making it dictionary based
+        '1': {'text': 'Add new book', 'action': lambda: add_book(conn)},
+        '2': {'text': 'Update book Information', 'action': lambda: update_book(conn)},
+        '3': {'text': 'Delete book', 'action': lambda: delete_book(conn)},
+        '4': {'text': 'View all books', 'action': lambda: view_books(conn)},
+        '5': {'text': 'Search books by title', 'action': lambda: search_books(conn)},
+        '6': {'text': 'Exit', 'action': None}
+    }
+
+    while True: #Admin menu
+        print("\nWelcome to the admin menu")
+        display_menu(admin_options)
+        choice = input("Enter your choice: ")
+        if choice in admin_options:
+            if choice == '6':
+                break
+            admin_options[choice]['action']()
+        else:
+            print("Invalid choice. Please try again.")
+
+def user_actions(conn): # User panel abilities. 
+    user_options = {
+        '1': {'text': 'View all books', 'action': lambda: view_books(conn)},
+        '2': {'text': 'Search for a book', 'action': lambda: search_books(conn)},
+        '3': {'text': 'Exit', 'action': None}
+    }
+
+    while True:
+        print("\nWelcome to the library")
+        display_menu(user_options)
+        choice = input("Enter your choice: ")
+        if choice in user_options:
+            if choice == '3':
+                break
+            user_options[choice]['action']()
+        else:
+            print("Invalid choice. Please try again.")
 
 def register_user(conn):
     username = input("Enter new username: ")
     password = input("Enter new password: ")
-    role = "user"  
+    role = "user"
     dbm.add_user(conn, username, password, role)
+    print("Registration successful.")
 
 def login(conn):
     username = input("Username: ")
     password = input("Password: ")
     user = dbm.login_user(conn, username, password)
+    if user:
+        print(f"Welcome back, {username}!")
+    else:
+        print("Invalid login.")
     return user
 
-def admin_actions(conn):
-  while True:
-      display_admin_menu()
-      choice = input("Enter your choice: ")
-      if choice == '1':
-          title = input("Enter the title of the book: ")
-          author = input("Enter the author of the book: ")
-          isbn = input("Enter the ISBN of the book: ")
-          published_date = input("Enter the published date of the book (YYYY-MM-DD): ")
-          book = (title, author, isbn, published_date)
-          dbm.add_book(conn, book)
-      elif choice == '2':
-          book_id = int(input("Enter the ID of the book to update: "))
-          title = input("Enter the new title of the book: ")
-          author = input("Enter the new author of the book: ")
-          isbn = input("Enter the new ISBN of the book: ")
-          published_date = input("Enter the new published date of the book (YYYY-MM-DD): ")
-          book = (title, author, isbn, published_date, book_id)
-          dbm.update_book(conn, book)
-      elif choice == '3':
-          book_id = int(input("Enter the ID of the book to delete: "))
-          dbm.delete_book(conn, book_id)
-      elif choice == '4':
-          dbm.select_all_books(conn)
-      elif choice == '5':
-        title = input("Enter the title of the book to search: ")
-        dbm.search_books_by_title(conn, title)
-      elif choice == '6':
-          break
-      else:
-          print("Invalid choice. Please try again.")
+def main_menu(conn):
+    options = {
+        '1': {'text': 'Login', 'action': lambda: login(conn)},
+        '2': {'text': 'Register', 'action': lambda: register_user(conn)},
+        '3': {'text': 'Exit', 'action': None}
+    }
 
-def user_actions(conn):
-    while True:
-        display_user_menu()
-        choice = input("Enter your choice: ")
-        if choice == '1':
-            dbm.select_all_books(conn)
-        elif choice == '2':
-            book_id = int(input("Enter the ID of the book to search: "))
-            book = dbm.select_book_by_id(conn, book_id)
-            print(book)
-        elif choice == '3':
-            break
+    while True: # """ for the string could be used but this is much cleaner I believe.
+        print("\nWelcome to the library system\n1. Login\n2. Register\n3. Exit")
+        choice = input("Choose an option: ")
+        if choice in options:
+            if choice == '3':
+                print("Exiting the system.")
+                break
+            user = options[choice]['action']()
+            if user and user[3] == "admin":
+                admin_actions(conn)
+            elif user:
+                user_actions(conn)
         else:
             print("Invalid choice. Please try again.")
 
 def main():
     database = "library.db"
     conn = dbm.create_connection(database)
-
     if conn is not None:
-        dbm.create_table(conn)
-        dbm.create_users_table(conn)
+        dbm.create_table(conn)  
+        dbm.create_users_table(conn)  
         if not dbm.does_user_exist(conn, "admin"):
-          dbm.add_user(conn, "admin", "admin123", "admin")
-        while True:
-            print("1. Login\n2. Register\n3. Exit")
-            choice = input("Choose an option: ")
-            if choice == '1':
-                user = login(conn)
-                if user:
-                    if user[3] == "admin":
-                        admin_actions(conn)
-                    else:
-                        user_actions(conn)
-                else:
-                    print("Invalid login.")
-            elif choice == '2':
-                register_user(conn)
-            elif choice == '3':
-                print("Exiting the system.")
-                break
-
+            dbm.add_user(conn, "admin", "admin123", "admin") # If admin doesnt exist in the database this will be the default one just in case. A functionality could be added to change user roles in the admin panel.
+        main_menu(conn)
         conn.close()
     else:
         print("Error! Cannot create the database connection.")
