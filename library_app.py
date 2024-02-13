@@ -55,7 +55,8 @@ def admin_actions(conn): #Admin panel functionalities
         '6': {'text': 'Exit', 'action': None}
     }
 
-    while True: #Admin menu
+    while True: 
+        """ Admin menu """
         print("\nWelcome to the admin menu")
         display_menu(admin_options)
         choice = input("Enter your choice: ")
@@ -67,6 +68,7 @@ def admin_actions(conn): #Admin panel functionalities
             print("Invalid choice. Please try again.")
 
 def user_actions(conn): # User panel abilities. 
+    """ User panel actions abilities """
     user_options = {
         '1': {'text': 'View all books', 'action': lambda: view_books(conn)},
         '2': {'text': 'Search for a book', 'action': lambda: search_books(conn)},
@@ -85,6 +87,7 @@ def user_actions(conn): # User panel abilities.
             print("Invalid choice. Please try again.")
 
 def register_user(conn):
+    """ User registeration panel """
     username = input("Enter new username: ")
     password = input("Enter new password: ")
     role = "user"
@@ -92,6 +95,7 @@ def register_user(conn):
     print("Registration successful.")
 
 def login(conn):
+    """User login panel """
     username = input("Username: ")
     password = input("Password: ")
     user = dbm.login_user(conn, username, password)
@@ -102,6 +106,7 @@ def login(conn):
     return user
 
 def main_menu(conn):
+    """ Main menu of the application """
     options = {
         '1': {'text': 'Login', 'action': lambda: login(conn)},
         '2': {'text': 'Register', 'action': lambda: register_user(conn)},
@@ -124,6 +129,7 @@ def main_menu(conn):
             print("Invalid choice. Please try again.")
 
 def main():
+    """ Database connections """
     database = "library.db"
     conn = dbm.create_connection(database)
     if conn is not None:
