@@ -15,6 +15,7 @@ def get_user_input(prompt, cast_to=str, validation=None): #Getting the user inpu
             print("Invalid input, please try again.")
 
 def add_book(conn):
+    """ Add book menu inputs """
     book_details = { # Made it more robust by making it dictionary based
         'title': input("Enter the title of the book: "),
         'author': input("Enter the author of the book: "),
@@ -24,6 +25,7 @@ def add_book(conn):
     dbm.add_book(conn, book_details)
 
 def update_book(conn):
+    """ update  book menu inputs """
     book_id = get_user_input("Enter the ID of the book to update: ", int)
     book_details = { # Made it more robust by making it dictionary based
         'title': input("Enter the new title of the book: "),
@@ -35,17 +37,21 @@ def update_book(conn):
     dbm.update_book(conn, book_details)
 
 def delete_book(conn):
+    """ delete book menu inputs """
     book_id = get_user_input("Enter the ID of the book to delete: ", int)
     dbm.delete_book(conn, book_id)
 
 def view_books(conn):
+    """ Getting all the books with the query """
     dbm.select_all_books(conn)
 
 def search_books(conn):
+    """ Search book input """
     title = input("Enter the title of the book to search: ")
     dbm.search_books_by_title(conn, title)
 
 def admin_actions(conn): #Admin panel functionalities
+    """ Admin panel inputs """
     admin_options = {  # Made it more robust by making it dictionary based
         '1': {'text': 'Add new book', 'action': lambda: add_book(conn)},
         '2': {'text': 'Update book Information', 'action': lambda: update_book(conn)},
