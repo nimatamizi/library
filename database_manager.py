@@ -36,17 +36,20 @@ def add_book(conn, book): # SQL injection protection has been added in addition 
     except sqlite3.Error as e:
         print(e)
 
-def update_book(conn, book):
-    """ Updating a book using the ID in books table. """
+def update_book(conn, book): # Same as add_book sql injection protection has been implemented and bug on dictionary has been resolved.
+    """Updating a book using the ID in the books table with named placeholders."""
     sql = ''' UPDATE books
-              SET title = ? ,
-                  author = ? ,
-                  isbn = ? ,
-                  published_date = ?
-              WHERE id = ?'''
-    cur = conn.cursor()
-    cur.execute(sql, book)
-    conn.commit()
+              SET title = :title,
+                  author = :author,
+                  isbn = :isbn,
+                  published_date = :published_date
+              WHERE id = :id'''
+    try:
+        with conn:
+            conn.execute(sql, book)
+    except sqlite3.Error as e:
+        print(e)
+
 
 
 def search_books_by_title(conn, title):
