@@ -8,7 +8,7 @@ def index():
     conn = dbm.create_connection('library.db')
     books_raw = dbm.select_all_books(conn)
     books = [dict(zip(['id', 'title', 'author', 'isbn', 'published_date'], book)) for book in books_raw] if books_raw else []
-    print(books) #debugging
+    print(books) #Debugging
     return render_template('index.html', books=books)
 
 @app.route('/books', methods=['GET'])
@@ -18,7 +18,7 @@ def books():
     if books is not None:
         books_list = [dict(zip(['id', 'title', 'author', 'isbn', 'published_date'], book)) for book in books]
     else:
-        books_list = []  # Ensures an empty list is returned if there are no books
+        books_list = []  # Ensures an empty list is returned if there are no books (so there is no error and the user will know)
     return jsonify(books_list)
 
 @app.route('/books/<int:book_id>', methods=['GET', 'PUT', 'DELETE'])

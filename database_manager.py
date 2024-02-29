@@ -81,10 +81,10 @@ def view_books(conn):
     """Print all books in the library."""
     books = select_all_books(conn)
     if books:
-        print("ID | Title | Author | ISBN | Published Date")
+        print("ID | Title | Author | ISBN | Published Date | Stock Status")
         print("-" * 50)
         for book in books:
-            print(f"{book[0]} | {book[1]} | {book[2]} | {book[3]} | {book[4]}")
+            print(f"{book[0]} | {book[1]} | {book[2]} | {book[3]} | {book[4]} | In stock")
     else:
         print("No books found in the library.")
 
