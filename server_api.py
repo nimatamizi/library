@@ -1,11 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import database_manager as dbm
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "Welcome to our library system"
+    conn = dbm.create_connection('library.db')
+    books = dbm.select_all_books(conn)
+    return render_template('index.html', books=books)
 
 @app.route('/books', methods=['GET'])
 def books():
