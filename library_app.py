@@ -43,7 +43,7 @@ def delete_book(conn):
 
 def view_books(conn):
     """ Getting all the books with the query """
-    dbm.select_all_books(conn)
+    dbm.view_books(conn)
 
 def search_books(conn):
     """ Search book input """

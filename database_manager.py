@@ -76,6 +76,18 @@ def select_all_books(conn):
     rows = cur.fetchall()
     return rows
 
+
+def view_books(conn):
+    """Print all books in the library."""
+    books = select_all_books(conn)
+    if books:
+        print("ID | Title | Author | ISBN | Published Date")
+        print("-" * 50)
+        for book in books:
+            print(f"{book[0]} | {book[1]} | {book[2]} | {book[3]} | {book[4]}")
+    else:
+        print("No books found in the library.")
+
 def select_book_by_id(conn, id):
     """ getting a book by its ID . """
     cur = conn.cursor()
