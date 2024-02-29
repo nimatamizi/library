@@ -26,14 +26,15 @@ def create_table(conn):
     except sqlite3.Error as e:
         print(e)
 
-def add_book(conn, book):
-    """ Adding a new book to the books table """
-    sql = ''' INSERT INTO books(title, author, isbn, published_date)
-              VALUES(?,?,?,?) '''
-    cur = conn.cursor()
-    cur.execute(sql, book)
-    conn.commit()
-    return cur.lastrowid
+def add_book(conn, book): # SQL injection protection has been added in addition to the dictionary input issue
+    """Add a new book to the books table using named parameters."""
+    sql = '''INSERT INTO books(title, author, isbn, published_date)
+             VALUES(:title, :author, :isbn, :published_date)'''
+    try:
+        with conn:
+            conn.execute(sql, book)
+    except sqlite3.Error as e:
+        print(e)
 
 def update_book(conn, book):
     """ Updating a book using the ID in books table. """
