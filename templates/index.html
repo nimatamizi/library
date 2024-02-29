@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library</title>
+</head>
+<body>
+    <h1>Books in Library</h1>
+    {% if books %}
+        <ul>
+            {% for book in books %}
+                <li>{{ book['title'] }} by {{ book['author'] }} (ISBN: {{ book['isbn'] }})</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No books found.</p>
+    {% endif %}
+</body>
+</html>

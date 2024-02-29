@@ -6,7 +6,9 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     conn = dbm.create_connection('library.db')
-    books = dbm.select_all_books(conn)
+    books_raw = dbm.select_all_books(conn)
+    books = [dict(zip(['id', 'title', 'author', 'isbn', 'published_date'], book)) for book in books_raw] if books_raw else []
+    print(books) #debugging
     return render_template('index.html', books=books)
 
 @app.route('/books', methods=['GET'])
