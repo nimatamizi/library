@@ -74,9 +74,7 @@ def select_all_books(conn):
     cur.execute("SELECT * FROM books")
 
     rows = cur.fetchall()
-
-    for row in rows:
-        print(row)
+    return rows
 
 def select_book_by_id(conn, id):
     """ getting a book by its ID . """

@@ -7,16 +7,15 @@ app = Flask(__name__)
 def index():
     return "Welcome to our library system"
 
-@app.route('/books', methods=['GET', 'POST'])
+@app.route('/books', methods=['GET'])
 def books():
     conn = dbm.create_connection('library.db')
-    if request.method == 'POST':
-        book_details = request.json
-        dbm.add_book(conn, book_details)
-        return jsonify({"message": "Book added successfully"}), 201
+    books = dbm.select_all_books(conn)
+    if books is not None:
+        books_list = [dict(zip(['id', 'title', 'author', 'isbn', 'published_date'], book)) for book in books]
     else:
-        books = dbm.select_all_books(conn)
-        return jsonify(books)
+        books_list = []  # Ensures an empty list is returned if there are no books
+    return jsonify(books_list)
 
 @app.route('/books/<int:book_id>', methods=['GET', 'PUT', 'DELETE'])
 def book(book_id):
