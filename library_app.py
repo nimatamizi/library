@@ -1,18 +1,18 @@
-import database_manager as dbm
+import database_manager as dbm  #dbm connected to the database_manager.py
 
 def display_menu(options): #Displaying the options from the dictionaries
-    print("\n".join([f"{key} - {value['text']}" for key, value in options.items()]))
+    print("\n".join([f"{key} - {value['text']}" for key, value in options.items()])) # Displaying menu based on the key and value of the dictionary menu
 
-def get_user_input(prompt, cast_to=str, validation=None): #Getting the user input 
+def get_user_input(prompt, cast_to=str, validation=None): #Function for validating the input 
     while True:
         user_input = input(prompt)
         try:
             value = cast_to(user_input)
-            if validation and not validation(value):
+            if validation and not validation(value): 
                 raise ValueError
             return value
-        except ValueError:
-            print("Invalid input, please try again.")
+        except ValueError: #Valueerror is when anything else other than the intended datatype has been entered (e.g character in int data type)
+            print("Invalid input, please try again.") 
 
 def add_book(conn):
     """ Add book menu inputs """
@@ -36,16 +36,16 @@ def update_book(conn):
     }
     dbm.update_book(conn, book_details)
 
-def delete_book(conn):
+def delete_book(conn): #Function for deleting a book the database manager_handles.py the query
     """ delete book menu inputs """
     book_id = get_user_input("Enter the ID of the book to delete: ", int)
-    dbm.delete_book(conn, book_id)
+    dbm.delete_book(conn, book_id) #dbm connected to the database_manager.py
 
-def view_books(conn):
+def view_books(conn): #Function for viewing the book the database manager_handles.py the query
     """ Getting all the books with the query """
     dbm.view_books(conn)
 
-def search_books(conn):
+def search_books(conn): #Function for a  book the database manager_handles.py the query
     """ Search book input """
     title = input("Enter the title of the book to search: ")
     dbm.search_books_by_title(conn, title)
@@ -61,7 +61,7 @@ def admin_actions(conn): #Admin panel functionalities
         '6': {'text': 'Exit', 'action': None}
     }
 
-    while True: 
+    while True: #creating a loop so the program doesnt close and allowing multiple inputs
         """ Admin menu """
         print("\nWelcome to the admin menu")
         display_menu(admin_options)
@@ -69,7 +69,7 @@ def admin_actions(conn): #Admin panel functionalities
         if choice in admin_options:
             if choice == '6':
                 break
-            admin_options[choice]['action']()
+            admin_options[choice]['action']() #Connected to the dictionary
         else:
             print("Invalid choice. Please try again.")
 
@@ -88,30 +88,30 @@ def user_actions(conn): # User panel abilities.
         if choice in user_options:
             if choice == '3':
                 break
-            user_options[choice]['action']()
+            user_options[choice]['action']() #connects to the dictionary 
         else:
             print("Invalid choice. Please try again.")
 
-def register_user(conn):
+def register_user(conn): #registering a user 
     """ User registeration panel """
     username = input("Enter new username: ")
     password = input("Enter new password: ")
     role = "user"
-    dbm.add_user(conn, username, password, role)
+    dbm.add_user(conn, username, password, role) #the default role is user since admin and users are separated
     print("Registration successful.")
 
-def login(conn):
+def login(conn): #login panel
     """User login panel """
     username = input("Username: ")
     password = input("Password: ")
-    user = dbm.login_user(conn, username, password)
+    user = dbm.login_user(conn, username, password) #connects to the database_manager.py to validate
     if user:
         print(f"Welcome back, {username}!")
     else:
         print("Invalid login.")
     return user
 
-def main_menu(conn):
+def main_menu(conn): #main menu of the application as soon as you open it
     """ Main menu of the application """
     options = {
         '1': {'text': 'Login', 'action': lambda: login(conn)},
@@ -126,15 +126,15 @@ def main_menu(conn):
             if choice == '3':
                 print("Exiting the system.")
                 break
-            user = options[choice]['action']()
-            if user and user[3] == "admin":
+            user = options[choice]['action']() #same as other functions connects to the dictionary
+            if user and user[3] == "admin": #checking the role of the user
                 admin_actions(conn)
             elif user:
-                user_actions(conn)
+                user_actions(conn) #connects to the user panel if the role is not admin
         else:
             print("Invalid choice. Please try again.")
 
-def main():
+def main(): #Database connection function
     """ Database connections """
     database = "library.db"
     conn = dbm.create_connection(database)

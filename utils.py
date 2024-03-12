@@ -1,5 +1,5 @@
-def validate_date(date_text):
-  """Validation for date format (YYYY-MM-DD)."""
+def validate_date(date_text): 
+  """Validation for date format (YYYY-MM-DD).""" #These """ will act as commenting and documentation also
   from datetime import datetime
   try:
       datetime.strptime(date_text, '%Y-%m-%d')
