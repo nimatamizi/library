@@ -11,6 +11,9 @@ USAGE: [ CLI ]
         python library_app.py
     OR
         python3 library_app.py
+ADMIN PANEL USER:
+                Username: Admin
+                Password: Admin123
 ```
 For the API make sure to run this alongside the CLI:
 ```
